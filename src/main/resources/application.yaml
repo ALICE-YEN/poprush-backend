@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: poprush-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/poprush
+    username: poprush
+    password: poprush
+
+  jpa:
+    hibernate:
+      ddl-auto: update # 根據你的 Entity，自動更新資料表結構。正式環境不建議，因為它會自動改資料表，風險比較高
+    show-sql: true

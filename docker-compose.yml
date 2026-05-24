@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: poprush-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: poprush
+      POSTGRES_USER: poprush
+      POSTGRES_PASSWORD: poprush
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
