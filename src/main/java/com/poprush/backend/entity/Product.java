@@ -8,7 +8,7 @@ import lombok.Setter;
 @Entity // 告訴 JPA 這個 class 要對應到資料庫的一張 table，Hibernate 實作
 @Getter // 自動幫這個 class 的所有欄位產生 getter
 @Setter // 自動幫這個 class 的所有欄位產生 setter
-public class Product {
+public class Product { // 預設 Table 名稱 product。用 @Table(name = "product") 可能會是更好的習慣
     @Id // 表示下面這個欄位是 primary key
     @GeneratedValue(strategy = GenerationType.IDENTITY) // id 由資料庫自動產生
     private Long id; // 商品唯一識別，由資料庫自動產生。Long 是因為資料庫 id 可能會越來越大
@@ -16,4 +16,13 @@ public class Product {
     private String name;
 
     private Integer stock;
+
+//    Lombok 語法糖，會自動產生以下的效果
+//    public Integer getStock() {
+//        return stock;
+//    }
+//
+//    public void setStock(Integer stock) {
+//        this.stock = stock;
+//    }
 }
