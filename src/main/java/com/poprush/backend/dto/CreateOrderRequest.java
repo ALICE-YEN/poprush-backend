@@ -1,3 +1,4 @@
+// 定義 request body 的型別
 package com.poprush.backend.dto;
 
 public class CreateOrderRequest {

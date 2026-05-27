@@ -11,8 +11,10 @@ import java.util.List; // 引入 Java 的 List
 @RequestMapping("/products") // 設定這個 Controller 的共同路徑，這個 controller 底下的 API 都會從 /products 開始
 public class ProductController {
 
+    // 宣告
     private final ProductRepository productRepository; // private：只有這個 class 內可以用。final：建構後就不能換掉，代表這個 dependency 是固定的。
 
+    // 初始化
     public ProductController(ProductRepository productRepository){ // constructor，Spring 會自動把 ProductRepository 注入進來
         this.productRepository = productRepository;
     }
@@ -22,8 +24,9 @@ public class ProductController {
         return productRepository.findAll();
     }
 
-    @GetMapping("/{id}")
+
+    @GetMapping("/{id}") // 設定 HTTP GET API，因為 class 上面已經有 @RequestMapping("/products")，所以這個 method 對應的是：GET /products/{id}
     public Product getProduct(@PathVariable Long id){
-        return productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+        return productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found")); // Java 內建 java.lang.RuntimeException
     }
 }

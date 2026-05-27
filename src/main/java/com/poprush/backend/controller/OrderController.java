@@ -1,27 +1,39 @@
 package com.poprush.backend.controller;
 
+import com.poprush.backend.dto.CreateOrderRequest;
 import com.poprush.backend.entity.Order;
 import com.poprush.backend.repository.OrderRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.poprush.backend.service.OrderService;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("orders")
+@RequestMapping("/orders")
 public class OrderController {
 
-    private final OrderRepository orderRepository;
+    // 宣告
+    private final OrderService orderService ;
 
-    public OrderController(OrderRepository orderRepository){
-        this.orderRepository = orderRepository;
+    // 初始化
+    public OrderController(OrderService orderService, OrderRepository orderRepository){
+        this.orderService = orderService;
     }
 
     @GetMapping
     public List<Order> getOrders(){
-        return orderRepository.findAll();
+        return orderService.getOrders();
     }
 
+    @GetMapping("/{id}")
+    public Order getOrder(@PathVariable Long id){
+        return orderService.getOrder(id);
+    }
 
+    @PostMapping
+    public Order createOrder(
+            @RequestBody CreateOrderRequest request
+    ){
+        return orderService.createOrder(request);
+    }
 }

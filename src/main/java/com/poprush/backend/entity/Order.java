@@ -42,4 +42,10 @@ public class Order {
     public LocalDateTime getCreatedAt(){
         return createdAt;
     }
+
+    // 原本 product 是 private，外面不能直接拿 order.product
+    // 改為 public，外面才可以 order.getProduct()
+    public Product getProduct() {
+        return product;
+    }
 }

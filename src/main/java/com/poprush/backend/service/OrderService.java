@@ -1,3 +1,4 @@
+// 「業務邏輯」通常放在 Service
 package com.poprush.backend.service;
 
 import com.poprush.backend.dto.CreateOrderRequest;
@@ -5,8 +6,56 @@ import com.poprush.backend.entity.Order;
 import com.poprush.backend.entity.Product;
 import com.poprush.backend.repository.OrderRepository;
 import com.poprush.backend.repository.ProductRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
+@Service // 告訴 Spring 這是一個 service 類別
 public class OrderService {
 
+    private final OrderRepository orderRepository; // 工具，用 OrderRepository 存訂單
+
+    private final ProductRepository productRepository; // 工具，用 ProductRepository 查商品 / 存商品
+
+    // constructor injection，Spring 會自動把 OrderRepository 和 ProductRepository 傳進來，所以不用自己 new OrderRepository()
+    public OrderService(
+            OrderRepository orderRepository,
+            ProductRepository productRepository
+    ){
+        this.orderRepository = orderRepository;
+        this.productRepository = productRepository;
+    }
+
+    public List<Order> getOrders(){
+        return orderRepository.findAll();
+    }
+
+    public Order getOrder(Long id){
+        return orderRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Order not found"));
+    }
+
+    public Order createOrder(CreateOrderRequest request){
+        Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if(product.getStock() < request.getQuantity()){
+            throw new RuntimeException("Not enough stock");
+        }
+
+        // 扣庫存
+        product.setStock(
+                product.getStock() - request.getQuantity()
+        );
+
+        productRepository.save(product); // 把扣完庫存的 product 存回 DB
+
+        // 建立一筆新的訂單物件
+        Order order = new Order(
+                product,
+                request.getQuantity()
+        );
+
+        return orderRepository.save(order); // 把訂單存進 DB，並回傳存好的結果
+    }
 }
