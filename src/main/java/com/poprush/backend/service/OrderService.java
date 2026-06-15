@@ -8,6 +8,7 @@ import com.poprush.backend.repository.OrderRepository;
 import com.poprush.backend.repository.ProductRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -36,6 +37,8 @@ public class OrderService {
         return orderRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Order not found"));
     }
 
+    // 這個方法裡面的所有 DB 操作要放在同一個 Transaction
+    @Transactional
     public Order createOrder(CreateOrderRequest request, boolean failAfterStockDeduct){
         Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
 
