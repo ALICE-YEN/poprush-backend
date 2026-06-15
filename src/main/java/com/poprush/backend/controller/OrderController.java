@@ -32,8 +32,9 @@ public class OrderController {
 
     @PostMapping
     public Order createOrder(
-            @RequestBody CreateOrderRequest request
+            @RequestBody CreateOrderRequest request,
+            @RequestHeader(value = "X-Test-Fail-After-Stock-Deduct", defaultValue = "false") boolean failAfterStockDeduct // // 測試模擬「扣完庫存後失敗」。從 HTTP header 讀一個叫做 X-Test-Fail-After-Stock-Deduct 的值
     ){
-        return orderService.createOrder(request);
+        return orderService.createOrder(request, failAfterStockDeduct);
     }
 }

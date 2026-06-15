@@ -36,7 +36,7 @@ public class OrderService {
         return orderRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Order not found"));
     }
 
-    public Order createOrder(CreateOrderRequest request){
+    public Order createOrder(CreateOrderRequest request, boolean failAfterStockDeduct){
         Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
 
         if(product.getStock() < request.getQuantity()){
@@ -49,6 +49,11 @@ public class OrderService {
         );
 
         productRepository.save(product); // 把扣完庫存的 product 存回 DB
+
+        // 測試模擬「扣完庫存後失敗」
+        if(failAfterStockDeduct){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Test failure after stock deduct");
+        }
 
         // 建立一筆新的訂單物件
         Order order = new Order(
