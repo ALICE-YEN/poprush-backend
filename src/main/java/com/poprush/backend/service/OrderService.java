@@ -40,10 +40,10 @@ public class OrderService {
     // 這個方法裡面的所有 DB 操作要放在同一個 Transaction
     @Transactional
     public Order createOrder(CreateOrderRequest request, boolean failAfterStockDeduct){
-        Product product = productRepository.findById(request.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
+        Product product = productRepository.findByIdForUpdate(request.getProductId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
 
         if(product.getStock() < request.getQuantity()){
-            throw new RuntimeException("Not enough stock");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough stock");
         }
 
         // 扣庫存
