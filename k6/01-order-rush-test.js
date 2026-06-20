@@ -21,6 +21,8 @@ export default function () {
 
     const res = http.post('http://localhost:8080/orders', payload, params);
 
+    console.log(`[VU ${__VU} ITER ${__ITER}] status=${res.status} body=${res.body}`);
+
     check(res, {
         'status is 200 or 500': (r) => r.status === 200 || r.status === 500,
     });

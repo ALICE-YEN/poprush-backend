@@ -2,50 +2,72 @@ package com.poprush.backend.entity;
 
 import com.poprush.backend.entity.Order;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "orders") // 避免踩到 SQL 保留字 order
+@Table(name = "orders", uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uk_order_user_campaign",
+                columnNames = {"user_id", "campaign_id"}
+        ),
+        @UniqueConstraint(
+                name = "uk_order_idempotency_key",
+                columnNames = {"idempotency_key"}
+        )
+}) // 避免踩到 SQL 保留字 order
+@Getter
+@Setter
+@NoArgsConstructor
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Long id;
 
     private Integer quantity;
 
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
+    @Column(name = "idempotency_key", nullable = false)
+    private String idempotencyKey;
+
     private LocalDateTime createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id") // foreign key
-    private Product product; // 指定關聯的是 Product Entity，primary key 是 id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    public Order(){} // JPA 強制要求，Hibernate 需要無參數 constructor
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campaign_id", nullable = false) // foreign key
+    private Campaign campaign; // 指定關聯的是 Product Entity，primary key 是 id
 
-    public Order(Product product, Integer quantity){
-        this.product = product;
+    //  Lombok 語法糖 @NoArgsConstructor，就不用寫以下模板
+    //  public Order(){} // JPA 強制要求，Hibernate 需要無參數 constructor
+
+    public Order(User user,Campaign campaign, Integer quantity,String idempotencyKey){
+        this.user = user;
+        this.campaign = campaign;
         this.quantity = quantity;
+        this.idempotencyKey = idempotencyKey;
+        this.status = OrderStatus.CONFIRMED;
         this.createdAt = LocalDateTime.now();
     }
 
-    // 可以考慮 Lombok 語法糖，就不用寫以下模板
-    public Long getId(){
-        return id;
-    }
+    //  Lombok 語法糖 @Getter、@Setter，就不用寫以下模板
+    //  public Long getId(){
+    //      return id;
+    //  }
 
-    public Integer getQuantity(){
-        return quantity;
-    }
+    //  public Integer getQuantity(){
+    //      return quantity;
+    //  }
 
-    public LocalDateTime getCreatedAt(){
-        return createdAt;
-    }
-
-    // 原本 product 是 private，外面不能直接拿 order.product
-    // 改為 public，外面才可以 order.getProduct()
-    public Product getProduct() {
-        return product;
-    }
+    //  public LocalDateTime getCreatedAt(){
+    //      return createdAt;
+    //  }
 }
