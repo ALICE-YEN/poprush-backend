@@ -17,10 +17,10 @@ public class Campaign {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY) // 多個 Campaign 可以對應同一個 Product，需要時才查詢 Product
-    @JoinColumn(name = "product_id", nullable = false) // 外鍵欄位 product_id
+    @JoinColumn(name = "product_id", nullable = false) // 外鍵欄位，campaigns.product_id 關聯 products.id
     private Product product;
 
-    private Integer stock; // 本場活動庫存
+    private Integer stock; // 本場活動可搶庫存，高併發扣減目標
 
     private LocalDateTime startTime;
 

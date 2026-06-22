@@ -2,7 +2,6 @@ package com.poprush.backend.controller;
 
 import com.poprush.backend.dto.CreateOrderRequest;
 import com.poprush.backend.entity.Order;
-import com.poprush.backend.repository.OrderRepository;
 import com.poprush.backend.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +16,12 @@ public class OrderController {
     private final OrderService orderService ;
 
     // 初始化
-    public OrderController(OrderService orderService, OrderRepository orderRepository){
+    public OrderController(OrderService orderService){
         this.orderService = orderService;
     }
 
     @GetMapping
-    public List<Order> getOrders(){
+    public List<Order> getOrders() {
         return orderService.getOrders();
     }
 
@@ -31,11 +30,11 @@ public class OrderController {
         return orderService.getOrder(id);
     }
 
-    @PostMapping
-    public Order createOrder(
-            @Valid @RequestBody CreateOrderRequest request,
-            @RequestHeader(value = "X-Test-Fail-After-Stock-Deduct", defaultValue = "false") boolean failAfterStockDeduct // // 測試模擬「扣完庫存後失敗」。從 HTTP header 讀一個叫做 X-Test-Fail-After-Stock-Deduct 的值
-    ){
-        return orderService.createOrder(request, failAfterStockDeduct);
-    }
+    //    @PostMapping
+    //    public Order createOrder(
+    //            @Valid @RequestBody CreateOrderRequest request,
+    //            @RequestHeader(value = "X-Test-Fail-After-Stock-Deduct", defaultValue = "false") boolean failAfterStockDeduct // // 測試模擬「扣完庫存後失敗」。從 HTTP header 讀一個叫做 X-Test-Fail-After-Stock-Deduct 的值
+    //    ){
+    //        return orderService.createOrder(request, failAfterStockDeduct);
+    //    }
 }

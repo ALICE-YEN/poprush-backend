@@ -2,32 +2,40 @@
 package com.poprush.backend.service;
 
 import com.poprush.backend.dto.CreateOrderRequest;
+import com.poprush.backend.entity.Campaign;
 import com.poprush.backend.entity.Order;
-import com.poprush.backend.entity.Product;
+import com.poprush.backend.entity.User;
+import com.poprush.backend.repository.CampaignRepository;
 import com.poprush.backend.repository.OrderRepository;
-import com.poprush.backend.repository.ProductRepository;
+import com.poprush.backend.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service // 告訴 Spring 這是一個 service 類別
 public class OrderService {
 
     private final OrderRepository orderRepository; // 工具，用 OrderRepository 存訂單
-
-    private final ProductRepository productRepository; // 工具，用 ProductRepository 查商品 / 存商品
+    private final CampaignRepository campaignRepository;
+    private final UserRepository userRepository;
 
     // constructor injection，Spring 會自動把 OrderRepository 和 ProductRepository 傳進來，所以不用自己 new OrderRepository()
     public OrderService(
             OrderRepository orderRepository,
-            ProductRepository productRepository
+            CampaignRepository campaignRepository,
+            UserRepository userRepository
     ){
         this.orderRepository = orderRepository;
-        this.productRepository = productRepository;
+        this.campaignRepository = campaignRepository;
+        this.userRepository = userRepository;
     }
+
 
     public List<Order> getOrders(){
         return orderRepository.findAll();
@@ -39,19 +47,50 @@ public class OrderService {
 
     // 這個方法裡面的所有 DB 操作要放在同一個 Transaction
     @Transactional
-    public Order createOrder(CreateOrderRequest request, boolean failAfterStockDeduct){
-        Product product = productRepository.findByIdForUpdate(request.getProductId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+    public Order createOrder(Long campaignId, CreateOrderRequest request, String idempotencyKey, boolean failAfterStockDeduct){
+        Optional<Order> existingOrder = orderRepository.findByIdempotencyKey(idempotencyKey);
 
-        if(product.getStock() < request.getQuantity()){
+        if(existingOrder.isPresent()){
+            return existingOrder.get();
+        }
+
+        User user = userRepository.findById(
+                request.getUserId()
+        ).orElseThrow(() ->
+                new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found"
+                )
+        );
+
+        Campaign campaign = campaignRepository.findByIdForUpdate(campaignId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Campaign not found"
+                        )
+                );
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if(campaign.getStartTime() != null && now.isBefore(campaign.getStartTime())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Campaign has not started");
+        }
+
+        if(campaign.getEndTime() != null && now.isAfter(campaign.getEndTime())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Campaign has ended");
+        }
+
+        if(campaign.getStock() < request.getQuantity()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not enough stock");
         }
 
         // 扣庫存
-        product.setStock(
-                product.getStock() - request.getQuantity()
+        campaign.setStock(
+                campaign.getStock() - request.getQuantity()
         );
 
-        productRepository.save(product); // 把扣完庫存的 product 存回 DB
+        campaignRepository.save(campaign); // 把扣完庫存的存回 DB
 
         // 測試模擬「扣完庫存後失敗」
         if(failAfterStockDeduct){
@@ -60,10 +99,22 @@ public class OrderService {
 
         // 建立一筆新的訂單物件
         Order order = new Order(
-                product,
-                request.getQuantity()
+                user,
+                campaign,
+                request.getQuantity(),
+                idempotencyKey
         );
 
-        return orderRepository.save(order); // 把訂單存進 DB，並回傳存好的結果
+        try {
+            return orderRepository.save(order); // 把訂單存進 DB，並回傳存好的結果
+        } catch (DataIntegrityViolationException exception){
+            // DB unique constraint 最後防線：
+            // 1. unique(user_id, campaign_id)
+            // 2. unique(idempotency_key)
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Duplicate order or duplicate idempotency key"
+            );
+        }
     }
 }

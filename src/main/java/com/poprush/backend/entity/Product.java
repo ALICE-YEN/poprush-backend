@@ -16,6 +16,10 @@ public class Product { // 預設 Table 名稱 product。用 @Table(name = "produ
 
     private String name;
 
+    private Integer price;
+
+    // 商品總庫存，用於表示商品整體庫存概念
+    // 實際搶購扣庫存會扣 Campaign.stock
     private Integer totalStock;
 
 //    Lombok 語法糖，會自動產生以下的效果
