@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 @Table(name = "orders", uniqueConstraints = {
         @UniqueConstraint(
                 name = "uk_order_user_campaign",
-                columnNames = {"user_id", "campaign_id"}
+                columnNames = {"user_id", "campaign_id"} // 同一個使用者不能重複搶同一場活動，user_id + campaign_id 不能重複
         ),
         @UniqueConstraint(
                 name = "uk_order_idempotency_key",
-                columnNames = {"idempotency_key"}
+                columnNames = {"idempotency_key"} // 同一個 Request 不能重複建立訂單，idempotency_key 不能重複
         )
 }) // 避免踩到 SQL 保留字 order
 @Getter
