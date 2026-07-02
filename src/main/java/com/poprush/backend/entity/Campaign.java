@@ -1,5 +1,6 @@
 package com.poprush.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "campaigns")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // 因為用了 LAZY（延遲載入），Hibernate 回傳的不是實際物件，而是一個 Proxy（代理物件），會多一些 Hibernate 自己用的欄位 hibernateLazyInitializer
 @Getter
 @Setter
 public class Campaign {

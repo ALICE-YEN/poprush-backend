@@ -1,12 +1,14 @@
 //用 Java class 表示資料庫裡的 product table
 package com.poprush.backend.entity; // Jakarta Persistence API，JPA 規格
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*; // 引入 JPA 相關 annotation（@Entity、@Id、@GeneratedValue、GenerationType）
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity // 告訴 JPA 這個 class 要對應到資料庫的一張 table，Hibernate 實作
 @Table(name = "products")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Getter // 自動幫這個 class 的所有欄位產生 getter
 @Setter // 自動幫這個 class 的所有欄位產生 setter
 public class Product { // 預設 Table 名稱 product。用 @Table(name = "product") 可能會是更好的習慣
