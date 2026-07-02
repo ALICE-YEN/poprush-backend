@@ -48,9 +48,11 @@ public class OrderService {
     // 這個方法裡面的所有 DB 操作要放在同一個 Transaction
     @Transactional
     public Order createOrder(Long campaignId, CreateOrderRequest request, String idempotencyKey, boolean failAfterStockDeduct){
-        Optional<Order> existingOrder = orderRepository.findByIdempotencyKey(idempotencyKey);
+        Optional<Order> existingOrder = orderRepository.findByIdempotencyKeyAndUser_IdAndCampaign_Id(
+                idempotencyKey, request.getUserId(), campaignId
+        );
 
-        // 發現這個 Idempotency-Key 已經建立過訂單了，所以不再建立新訂單，直接回傳原本那筆 Order
+        // 發現同一個 user、同一場 campaign 底下，這個 Idempotency-Key 已經建立過訂單了，所以不再建立新訂單，直接回傳原本那筆 Order
         if(existingOrder.isPresent()){
             return existingOrder.get();
         }
@@ -111,7 +113,7 @@ public class OrderService {
         } catch (DataIntegrityViolationException exception){
             // DB unique constraint 最後防線：
             // 1. unique(user_id, campaign_id)
-            // 2. unique(idempotency_key)
+            // 2. unique(idempotency_key, user_id, campaign_id)
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Duplicate order or duplicate idempotency key"
