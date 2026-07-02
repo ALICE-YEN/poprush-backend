@@ -1,6 +1,7 @@
 //用 Java class 表示資料庫裡的 product table
 package com.poprush.backend.entity; // Jakarta Persistence API，JPA 規格
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*; // 引入 JPA 相關 annotation（@Entity、@Id、@GeneratedValue、GenerationType）
 import lombok.Getter;
@@ -21,7 +22,9 @@ public class Product { // 預設 Table 名稱 product。用 @Table(name = "produ
     private Integer price;
 
     // 商品總庫存，用於表示商品整體庫存概念
-    // 實際搶購扣庫存會扣 Campaign.stock
+    // 實際搶購扣庫存會扣 Campaign.stock，totalStock 不會即時更新
+    // 不透過 API 回傳，避免呈現過期、誤導性的庫存數字
+    @JsonIgnore
     private Integer totalStock;
 
 //    Lombok 語法糖，會自動產生以下的效果

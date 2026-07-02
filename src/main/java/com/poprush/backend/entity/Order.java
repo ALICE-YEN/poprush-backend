@@ -1,5 +1,6 @@
 package com.poprush.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.poprush.backend.entity.Order;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -15,10 +16,11 @@ import java.time.LocalDateTime;
                 columnNames = {"user_id", "campaign_id"} // 同一個使用者不能重複搶同一場活動，user_id + campaign_id 不能重複
         ),
         @UniqueConstraint(
-                name = "uk_order_idempotency_key",
-                columnNames = {"idempotency_key"} // 同一個 Request 不能重複建立訂單，idempotency_key 不能重複
+                name = "uk_order_idempotency_user_campaign",
+                columnNames = {"idempotency_key", "user_id", "campaign_id"} // 同一個 user 對同一場 campaign 用同一把 idempotency key 不能重複建立訂單
         )
 }) // 避免踩到 SQL 保留字 order
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // user、campaign 是 LAZY，避免 Hibernate proxy 欄位混進回傳的 JSON
 @Getter
 @Setter
 @NoArgsConstructor

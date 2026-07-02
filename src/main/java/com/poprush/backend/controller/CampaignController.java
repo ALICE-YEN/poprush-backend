@@ -6,7 +6,9 @@ import com.poprush.backend.service.OrderService;
 import com.poprush.backend.entity.Campaign;
 import com.poprush.backend.entity.Order;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 @RestController
@@ -33,7 +35,7 @@ public class CampaignController {
     public Campaign getCampaign(
             @PathVariable Long id
     ){
-        return campaignRepository.findById(id).orElseThrow(() -> new RuntimeException("Campaign not found"));
+        return campaignRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Campaign not found"));
     }
 
     @PostMapping("/{campaignId}/orders")
