@@ -1,3 +1,4 @@
+// 啟動 Spring Boot 時，自動塞一批測試資料進資料庫
 package com.poprush.backend;
 
 import com.poprush.backend.entity.Campaign;
@@ -14,11 +15,12 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Component
-@Profile("dev") // 這樣 DataInitializer 只會在 dev 環境跑
-@RequiredArgsConstructor
-public class DataInitializer implements CommandLineRunner {
+@Component // 告訴 Spring：這個 class 要交給 Spring 管理
+@Profile("dev") // 只有在 dev 環境才會執行，避免正式環境也自動塞假資料
+@RequiredArgsConstructor // Lombok 會自動產生 constructor，把 final 的 repository 注入進來
+public class DataInitializer implements CommandLineRunner { // Spring Boot 啟動完成後，會自動執行這個 class 的 run() 方法。
 
+    // 宣告這支初始化程式需要用到三個 Repository，分別用來操作 Product、User、Campaign 資料表
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CampaignRepository campaignRepository;
@@ -51,6 +53,7 @@ public class DataInitializer implements CommandLineRunner {
         ));
     }
 
+    // 建立物件 helper，讓上方 saveAll 內容少寫
     private Product product(String name, int price, int totalStock) {
         Product p = new Product();
         p.setName(name);

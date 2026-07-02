@@ -50,6 +50,7 @@ public class OrderService {
     public Order createOrder(Long campaignId, CreateOrderRequest request, String idempotencyKey, boolean failAfterStockDeduct){
         Optional<Order> existingOrder = orderRepository.findByIdempotencyKey(idempotencyKey);
 
+        // 發現這個 Idempotency-Key 已經建立過訂單了，所以不再建立新訂單，直接回傳原本那筆 Order
         if(existingOrder.isPresent()){
             return existingOrder.get();
         }
