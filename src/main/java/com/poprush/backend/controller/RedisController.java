@@ -1,6 +1,7 @@
 package com.poprush.backend.controller;
 
 import org.springframework.data.redis.core.StringRedisTemplate; // 引入 StringRedisTemplate，Spring Data Redis 提供的工具，專門用來操作 Redis 裡的字串資料
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,11 +36,12 @@ public class RedisController {
      * 測試讀取 Redis
      */
     @GetMapping("/get")
-    public String getValue() {
+    public ResponseEntity<String> getValue() { // ResponseEntity 回傳完整 HTTP Response
 
         String value = redisTemplate.opsForValue().get("test:message");
 
-        return value == null ? "No Value" : value;
+        return value == null ? ResponseEntity.notFound().build() // HTTP/1.1 404 Not Found，Body 空
+                : ResponseEntity.ok(value); // HTTP 200 OK，Body value
     }
 
 }
