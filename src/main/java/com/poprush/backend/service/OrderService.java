@@ -105,6 +105,13 @@ public class OrderService {
         long remainingStock = redisStockService.decreaseStock(campaignId, request.getQuantity());
 
         if(remainingStock == RedisStockService.NOT_INITIALIZED){
+            // 可能是 campaign 是 app 啟動後才建立的，或 Redis 資料不見了，用手上已經查到的 DB 庫存自我修復一次再重試
+            redisStockService.initStockIfAbsent(campaignId, campaign.getStock());
+            remainingStock = redisStockService.decreaseStock(campaignId, request.getQuantity());
+        }
+
+        if(remainingStock == RedisStockService.NOT_INITIALIZED){
+            // 修復後還是失敗，代表 Redis 有更深層的問題，直接讓錯誤浮出來，不要無限重試
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Stock not initialized in Redis");
         }
 

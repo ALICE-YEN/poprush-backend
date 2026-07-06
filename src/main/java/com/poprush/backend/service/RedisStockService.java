@@ -43,9 +43,10 @@ public class RedisStockService { // 管理 Redis 裡的活動庫存
         return KEY_PREFIX + campaignId;
     }
 
-    // 把 DB 的庫存數字灌進 Redis，之後這個 key 就是搶購期間唯一的庫存裁判
-    public void initStock(Long campaignId, int stock) {
-        redisTemplate.opsForValue().set(stockKey(campaignId), String.valueOf(stock)); // Redis 的 value 是字串
+    // 把 DB 的庫存數字灌進 Redis；用 SETNX，已經有值的 key 不會被覆蓋，
+    // 這樣可以在任何時候安全地重複呼叫：新 campaign 會被補上、Redis 資料不見了也能自動修復，但不會把「正在搶購、已經被扣過」的庫存蓋回原始滿額
+    public void initStockIfAbsent(Long campaignId, int stock) {
+        redisTemplate.opsForValue().setIfAbsent(stockKey(campaignId), String.valueOf(stock)); // Redis 的 value 是字串
     }
 
     // atomic「檢查庫存夠不夠並扣減」；回傳扣後剩餘庫存，或 NOT_INITIALIZED / INSUFFICIENT_STOCK

@@ -7,10 +7,10 @@ import com.poprush.backend.entity.User;
 import com.poprush.backend.repository.CampaignRepository;
 import com.poprush.backend.repository.ProductRepository;
 import com.poprush.backend.repository.UserRepository;
-import com.poprush.backend.service.RedisStockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -18,6 +18,7 @@ import java.util.List;
 
 @Component // 告訴 Spring：這個 class 要交給 Spring 管理
 @Profile("dev") // 只有在 dev 環境才會執行，避免正式環境也自動塞假資料
+@Order(1) // 要先跑完塞假資料，RedisStockWarmupRunner（Order 2）才能連新建的 campaign 一起補進 Redis
 @RequiredArgsConstructor // Lombok 會自動產生 constructor，把 final 的 repository 注入進來
 public class DataInitializer implements CommandLineRunner { // Spring Boot 啟動完成後，會自動執行這個 class 的 run() 方法。
 
@@ -25,7 +26,6 @@ public class DataInitializer implements CommandLineRunner { // Spring Boot 啟�
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CampaignRepository campaignRepository;
-    private final RedisStockService redisStockService;
 
     @Override
     public void run(String... args) {
@@ -46,16 +46,14 @@ public class DataInitializer implements CommandLineRunner { // Spring Boot 啟�
         ));
 
         LocalDateTime now = LocalDateTime.now();
-        List<Campaign> campaigns = campaignRepository.saveAll(List.of(
+        campaignRepository.saveAll(List.of(
             campaign(products.get(0), 50, now.minusHours(1), now.plusHours(23)),
             campaign(products.get(1), 30, now.plusMinutes(30), now.plusHours(6)),
             campaign(products.get(2), 20, now.minusDays(1), now.plusDays(1)),
             campaign(products.get(3), 100, now.plusHours(2), now.plusHours(8)),
             campaign(products.get(4), 10, now.minusHours(2), now.plusMinutes(30))
         ));
-
-        // 把每場 campaign 的庫存灌進 Redis，搶購期間庫存的裁判就是 Redis 這份資料
-        campaigns.forEach(c -> redisStockService.initStock(c.getId(), c.getStock()));
+        // Redis 庫存的初始化交給 RedisStockWarmupRunner 統一處理，不管 dev/prod 都會執行
     }
 
     // 建立物件 helper，讓上方 saveAll 內容少寫

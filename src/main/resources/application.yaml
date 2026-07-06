@@ -6,7 +6,7 @@ spring:
     active: dev # 正式部署時把 profile 換成 prod
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/poprush
+    url: jdbc:postgresql://localhost:5434/poprush
     username: poprush
     password: poprush
 
