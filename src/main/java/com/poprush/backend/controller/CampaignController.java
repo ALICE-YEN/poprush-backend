@@ -41,7 +41,7 @@ public class CampaignController {
     @PostMapping("/{campaignId}/orders")
     public Order createOrder(
             @PathVariable Long campaignId,
-            @Valid @RequestBody CreateOrderRequest request,
+            @Valid @RequestBody CreateOrderRequest request, // @Valid：讓 Spring 在進入 controller 方法前，依照 CreateOrderRequest 裡的 @NotNull、@Min(1) 這些規則驗證 request body。沒有 @Valid 的話，DTO 上那些 annotation 只是寫著好看，不會自動擋掉錯誤輸入
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @RequestHeader(value = "X-Test-Fail-After-Stock-Deduct", defaultValue = "false") boolean failAfterStockDeduct // 測試模擬「扣完庫存後失敗」。從 HTTP header 讀一個叫做 X-Test-Fail-After-Stock-Deduct 的值
             ){

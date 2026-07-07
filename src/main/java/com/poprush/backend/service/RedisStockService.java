@@ -51,11 +51,19 @@ public class RedisStockService { // 管理 Redis 裡的活動庫存
 
     // atomic「檢查庫存夠不夠並扣減」；回傳扣後剩餘庫存，或 NOT_INITIALIZED / INSUFFICIENT_STOCK
     public long decreaseStock(Long campaignId, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("quantity must be positive");
+        }
+
         Long result = redisTemplate.execute(
                 DECREASE_SCRIPT,
                 Collections.singletonList(stockKey(campaignId)),
                 String.valueOf(quantity)
         );
+        if (result == null) {
+            throw new IllegalStateException("Redis decrease stock script returned null");
+        }
+
         return result;
     }
 
