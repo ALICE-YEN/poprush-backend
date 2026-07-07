@@ -113,7 +113,7 @@ export function teardown(data) {
         // @Transactional 也會確保 DB stock 沒有被扣掉
         const rollbackRes = http.post(
             `${BASE_URL}/campaigns/${CAMPAIGN_ID}/orders`,
-            JSON.stringify({ userId: 1, quantity: QUANTITY }),
+            JSON.stringify({ userId: 9, quantity: QUANTITY }),
             {
                 headers: {
                     'Content-Type': 'application/json',

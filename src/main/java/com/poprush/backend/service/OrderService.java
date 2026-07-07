@@ -123,7 +123,11 @@ public class OrderService {
         // 因為 Redis 不在 @Transactional 的 rollback 範圍內，不會自動復原
         try {
             // 把 DB 的庫存也同步扣掉，紀錄用，真正決定「搶不搶得到」的判斷在上面 Redis 那步就做完了
-            campaignRepository.decreaseStock(campaignId, request.getQuantity());
+            int updatedRows = campaignRepository.decreaseStock(campaignId, request.getQuantity());
+            // 防禦性檢查：如果 DB 根本沒有扣成功，就不要建立 Order
+            if(updatedRows == 0){
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "DB stock already exhausted");
+            }
 
             // 測試模擬「扣完庫存後失敗」
             if(failAfterStockDeduct){
