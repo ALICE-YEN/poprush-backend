@@ -1,10 +1,10 @@
 package com.poprush.backend.controller;
 
 import com.poprush.backend.dto.CreateOrderRequest;
+import com.poprush.backend.dto.CreateOrderResponse;
 import com.poprush.backend.repository.CampaignRepository;
 import com.poprush.backend.service.OrderService;
 import com.poprush.backend.entity.Campaign;
-import com.poprush.backend.entity.Order;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +39,7 @@ public class CampaignController {
     }
 
     @PostMapping("/{campaignId}/orders")
-    public Order createOrder(
+    public CreateOrderResponse createOrder( // 回 Redis 裡的 response DTO，不再回 JPA Entity（com.poprush.backend.entity.Order）
             @PathVariable Long campaignId,
             @Valid @RequestBody CreateOrderRequest request, // @Valid：讓 Spring 在進入 controller 方法前，依照 CreateOrderRequest 裡的 @NotNull、@Min(1) 這些規則驗證 request body。沒有 @Valid 的話，DTO 上那些 annotation 只是寫著好看，不會自動擋掉錯誤輸入
             @RequestHeader("Idempotency-Key") String idempotencyKey,
