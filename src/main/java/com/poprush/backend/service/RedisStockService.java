@@ -17,7 +17,7 @@ public class RedisStockService { // 管理 Redis 裡的活動庫存
 
     private static final String KEY_PREFIX = "stock:campaign:";
 
-    // Lua script 由 Redis 單執行緒執行，GET -> 比較 -> DECRBY 這三步在同一個 script 內完成，
+    // Lua script 由 Redis 單執行緒執行，GET -> 比較 -> DECRBY 這三步在同一個 script 內完成
     // 不會有兩個 request 同時讀到「扣減前」的庫存值
     private static final DefaultRedisScript<Long> DECREASE_SCRIPT = new DefaultRedisScript<>(
             "local stock = redis.call('GET', KEYS[1])\n" +
@@ -57,7 +57,7 @@ public class RedisStockService { // 管理 Redis 裡的活動庫存
 
         Long result = redisTemplate.execute(
                 DECREASE_SCRIPT,
-                Collections.singletonList(stockKey(campaignId)),
+                Collections.singletonList(stockKey(campaignId)), // execute 要的是：List<String>。Collections.singletonList() 建立一個只有一個元素的 List
                 String.valueOf(quantity)
         );
         if (result == null) {

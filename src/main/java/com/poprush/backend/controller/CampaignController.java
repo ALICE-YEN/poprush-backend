@@ -42,7 +42,7 @@ public class CampaignController {
     public CreateOrderResponse createOrder( // 回 Redis 裡的 response DTO，不再回 JPA Entity（com.poprush.backend.entity.Order）
             @PathVariable Long campaignId,
             @Valid @RequestBody CreateOrderRequest request, // @Valid：讓 Spring 在進入 controller 方法前，依照 CreateOrderRequest 裡的 @NotNull、@Min(1) 這些規則驗證 request body。沒有 @Valid 的話，DTO 上那些 annotation 只是寫著好看，不會自動擋掉錯誤輸入
-            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @RequestHeader("Idempotency-Key") String idempotencyKey, // 請求的控制資訊（metadata），不是業務資料（business data），所以放 Header 比較符合 HTTP 的設計
             @RequestHeader(value = "X-Test-Fail-After-Stock-Deduct", defaultValue = "false") boolean failAfterStockDeduct // 測試模擬「扣完庫存後失敗」。從 HTTP header 讀一個叫做 X-Test-Fail-After-Stock-Deduct 的值
             ){
         return orderService.createOrder(campaignId, request, idempotencyKey, failAfterStockDeduct);
