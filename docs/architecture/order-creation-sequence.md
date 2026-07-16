@@ -17,7 +17,7 @@ sequenceDiagram
     API->>Service: createOrder(...)
     Service->>Idem: SET idempotency record = PROCESSING (NX, TTL 30s)
 
-    alt SET NX 失敗：Redis 已有相同 idempotency record
+    alt Redis SET NX 失敗：Redis 已有相同 idempotency record
         Idem-->>Service: 現有紀錄
         alt SUCCESS
             Service-->>Client: 直接回傳第一次成功時儲存的 response
@@ -26,7 +26,7 @@ sequenceDiagram
         else FAILED
             Service-->>Client: 以 Redis 儲存的 errorMessage 建立新的 409 錯誤
         end
-    else SET NX 成功：本次請求取得處理權
+    else Redis SET NX 成功：本次請求取得處理權
         Service->>DB: 查詢相同 idempotency 訂單
 
         alt DB 已有訂單
@@ -55,11 +55,11 @@ sequenceDiagram
                 else Redis 扣庫存成功
                     Service->>DB: 扣 DB 庫存
 
-                    alt DB 沒有 row 被更新
+                    alt DB 庫存未更新（updatedRows == 0）
                         Service->>Stock: 補回 Redis 庫存
                         Service->>Idem: SET FAILED (TTL 5m)
                         Service-->>Client: 409 Insufficient stock in database or campaign no longer exists
-                    else DB 庫存更新成功
+                    else DB 庫存更新成功（updatedRows > 0）
                         Service->>DB: INSERT Order
 
                         alt Transaction commit
